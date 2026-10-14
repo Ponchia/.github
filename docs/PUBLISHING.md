@@ -59,11 +59,13 @@ Unregistered projects are reported but never automatically changed.
 
 ~~~sh
 python3 scripts/repository_policy.py --repo Ponchia/new-project
-python3 scripts/repository_policy.py --repo Ponchia/new-project --apply
+python3 scripts/governance_v2.py plan --repo Ponchia/new-project
+# Review the JSON before explicitly approving it:
+python3 scripts/governance_v2.py apply --plan PLAN_FILE --approve PLAN_SHA256
 ~~~
 
-See [the governance guide](REPOSITORY_POLICY.md). The policy tool
-does not edit existing CI definitions or branch-protection rules.
+See [the governance guide](REPOSITORY_POLICY.md). The reviewed plan/apply workflow never overwrites existing CI definitions
+or branch-protection rules.
 
 ## 5. Periodic account audit
 

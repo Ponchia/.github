@@ -651,29 +651,22 @@ def main(argv: list[str] | None = None, client: GitHub | None = None) -> int:
     if args.validate_policy:
         print(f"Valid policy with {len(policy['repositories'])} managed repositories")
         return 0
+    if args.apply:
+        print(
+            "Unreviewed direct --apply is retired. Use "
+            "scripts/governance_v2.py plan and apply with an approved SHA-256.",
+            file=sys.stderr,
+        )
+        return 2
     if not (args.all or args.repo):
         parser.error("Choose --all or --repo")
-    if args.apply and args.all and args.confirm_owner != policy["owner"]:
-        parser.error("Account-wide --apply requires --confirm-owner Ponchia")
     client = client or GitHub()
-    if args.apply:
-        try:
-            identity = client.whoami()
-        except ApiError as exc:
-            print(f"Cannot verify GitHub identity: {exc}", file=sys.stderr)
-            return 2
-        if identity.casefold() != policy["owner"].casefold():
-            print(
-                f"Refusing mutations: active GitHub user {identity} is not {policy['owner']}",
-                file=sys.stderr
-            )
-            return 2
     try:
         repos = client.list_public(policy["owner"]) if args.all else sorted(set(args.repo))
     except ApiError as exc:
         print(f"Inventory error: {exc}", file=sys.stderr)
         return 2
-    report = audit(client, policy, repos, apply=args.apply)
+    report = audit(client, policy, repos, apply=False)
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
