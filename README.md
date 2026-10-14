@@ -70,26 +70,48 @@ reports `missing_funding` rather than enabling an incomplete Sponsor button.
 Re-run the audit later; do not add unnecessary duplicate files just to silence
 the check.
 
-## Repository governance and drift checks
+## Repository governance: plan, review, apply
 
-The shared repository also maintains a [declarative GitHub policy](policy/repositories.json)
-and a [read-only drift auditor](scripts/repository_policy.py). It distinguishes
-maintained OSS, the personal profile and these defaults, and identifies
-unregistered new projects without modifying them.
+Ponchia maintains a [declarative policy](policy/repositories.json) and a
+[read-only audit command](scripts/repository_policy.py). The reviewable
+[governance v2 CLI](scripts/governance_v2.py) generates one-use plans,
+records SHA-256 evidence, and refuses stale or altered approvals.
 
-~~~sh
+```sh
 python3 scripts/repository_policy.py --all
-python3 scripts/repository_policy.py --all --json
-~~~
+python3 scripts/governance_v2.py plan --all
+```
 
-An explicit `--apply` allows narrowly scoped verified changes such as
-vulnerability alerts and Dependabot security updates, merged-branch cleanup, sponsorship and
-**first-time** branch protection with previously successful required CI checks.
-Existing branch rules and project-specific CI are never overwritten.
-Account-wide mutation additionally requires `--confirm-owner Ponchia`.
+The plan command returns a JSON file path, SHA-256 approval digest and
+the precise proposed actions. Review its contents before applying:
 
-Read the [governance guide](docs/REPOSITORY_POLICY.md) before any write.
-The CLI skips forks, private and archived repositories.
+```sh
+python3 scripts/governance_v2.py apply --plan /path/to/reviewed-plan.json --approve FULL_64_CHARACTER_PLAN_SHA256
+```
+
+A plan is valid for 24 hours, binds to current policy and code revisions,
+and rechecks every targeted repository before the first mutation.
+It cannot be replayed. Existing branch protections and project CI are never
+rewritten automatically. The old direct repository-policy --apply path is
+retired; sponsorship onboarding retains its separate narrowly scoped command.
+
+## Weekly drift watch on the devbox
+
+The [systemd user timer](ops/systemd/ponchia-governance-watch.timer) runs each
+Monday at about 09:00 Europe/Madrid. It uses the devbox's existing gh
+authentication to audit GitHub configuration read-only, keeps evidence in
+a private local state directory, and creates or updates a GitHub issue only
+if meaningful findings change. No administrative token is placed in
+public GitHub Actions.
+
+```sh
+bash scripts/install_governance_watch.sh
+systemctl --user start ponchia-governance-watch.service
+```
+
+The first clean run creates a baseline without a notification. For details,
+failure recovery, notification limitations and audit receipts, read the
+[governance guide](docs/REPOSITORY_POLICY.md).
 
 ## What stays project-specific
 
