@@ -21,6 +21,7 @@ cannot inherit a license through the account's `.github` defaults.
   versions if that distinction matters.
 - CONTRIBUTING.md and issue templates: relevant to the project.
 - CI: format, tests, builds and security checks appropriate to the stack.
+- Enable vulnerability alerts before Dependabot security updates.
 - Dependabot: ecosystems actually used, with sensible update frequency.
 - Branch protection: protect main and require the checks that make sense.
 - About section: short description, homepage (if applicable) and topics.
