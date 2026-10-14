@@ -261,6 +261,25 @@ class PlanAndWatchTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(child.parent.stat().st_mode), 0o700)
             self.assertEqual(stat.S_IMODE(child.stat().st_mode), 0o600)
 
+    def test_unmanaged_repository_is_reported_once(self):
+        report = {
+            "repositories": [{
+                "repository": "Ponchia/new-library",
+                "status": "unmanaged",
+                "findings": [{
+                    "code": "repository.unmanaged",
+                    "actual": False,
+                    "expected": True,
+                    "severity": "error",
+                    "action": None,
+                }],
+            }]
+        }
+        events = g.noteworthy(report)
+        self.assertEqual(events, [
+            {"repository": "Ponchia/new-library", "code": "repository.unmanaged"}
+        ])
+
     def test_advisories_are_not_notified(self):
         client = FakeClient()
         client.state["repo"]["topics"] = []
