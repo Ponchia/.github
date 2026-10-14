@@ -20,7 +20,8 @@
       "pushProtection": true,
       "dependabotSecurityUpdates": true,
       "deleteBranchOnMerge": true,
-      "sponsorButton": true
+      "sponsorButton": true,
+      "vulnerabilityAlerts": true
     },
     "shared-defaults": {
       "readme": true,
@@ -40,7 +41,8 @@
       "pushProtection": true,
       "dependabotSecurityUpdates": true,
       "deleteBranchOnMerge": true,
-      "sponsorButton": false
+      "sponsorButton": false,
+      "vulnerabilityAlerts": true
     },
     "profile": {
       "readme": true,
@@ -60,20 +62,26 @@
       "pushProtection": true,
       "dependabotSecurityUpdates": false,
       "deleteBranchOnMerge": false,
-      "sponsorButton": true
+      "sponsorButton": true,
+      "vulnerabilityAlerts": false
     }
   },
   "repositories": {
     ".github": {
       "profile": "shared-defaults",
-      "requiredChecks": ["python"]
+      "requiredChecks": [
+        "python"
+      ]
     },
     "Ponchia": {
       "profile": "profile"
     },
     "bronto-annotations": {
       "profile": "project",
-      "requiredChecks": ["Node 20", "Node 22"]
+      "requiredChecks": [
+        "Node 20",
+        "Node 22"
+      ]
     },
     "bronto-layout": {
       "profile": "project",
@@ -86,7 +94,9 @@
     },
     "bronto-ui": {
       "profile": "project",
-      "requiredChecks": ["ci-gate"]
+      "requiredChecks": [
+        "ci-gate"
+      ]
     },
     "sense6": {
       "profile": "project",

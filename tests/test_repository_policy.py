@@ -54,6 +54,7 @@ def state(
         "paths": set(BASE_FILES),
         "protection": branch,
         "rules": [],
+        "vulnerability_alerts": True,
         "funding": {
             "id": "R_dummy", "nameWithOwner": f"Ponchia/{name}",
             "isFork": False, "isArchived": False, "visibility": "PUBLIC",
@@ -92,6 +93,8 @@ class FakeGitHub:
                 "tree": [{"path": name, "type": "blob"} for name in self.state["paths"]],
                 "truncated": False,
             }
+        if path.endswith("/vulnerability-alerts"):
+            return {} if self.state["vulnerability_alerts"] else None
         if "/rules/branches/" in path:
             return None if self.rule_failure else self.state["rules"]
         if "/branches/" in path and path.endswith("/protection"):
@@ -127,7 +130,11 @@ class FakeGitHub:
 
     def write(self, method, path, value=None):
         self.writes.append((method, path, value))
-        if path.endswith("/automated-security-fixes"):
+        if path.endswith("/vulnerability-alerts"):
+            self.state["vulnerability_alerts"] = True
+        elif path.endswith("/automated-security-fixes"):
+            if not self.state["vulnerability_alerts"]:
+                raise policy.ApiError("Vulnerability alerts must be enabled", 422)
             self.state["repo"]["security_and_analysis"][
                 "dependabot_security_updates"
             ]["status"] = "enabled"
@@ -210,6 +217,54 @@ class PolicyTests(unittest.TestCase):
         ])
         self.assertFalse(failures)
         self.assertEqual(self.findings(fake.state), [])
+
+    def test_dependabot_prerequisite_is_audited(self):
+        item = state()
+        item["vulnerability_alerts"] = False
+        item["repo"]["security_and_analysis"]["dependabot_security_updates"][
+            "status"
+        ] = "disabled"
+        found = self.findings(item)
+        self.assertEqual(
+            [f["code"] for f in found],
+            ["security.vulnerability_alerts", "security.dependabot_updates"]
+        )
+
+    def test_dependabot_prerequisite_is_enabled_first(self):
+        item = state()
+        item["vulnerability_alerts"] = False
+        item["repo"]["security_and_analysis"]["dependabot_security_updates"][
+            "status"
+        ] = "disabled"
+        fake = FakeGitHub(item)
+        applied, failures = policy.apply_supported(
+            fake, item, self.cfg, self.findings(item)
+        )
+        self.assertFalse(failures)
+        self.assertEqual(applied, [
+            "security.vulnerability_alerts",
+            "security.dependabot_updates",
+        ])
+        self.assertEqual([row[1].split("/")[-1] for row in fake.writes],
+                         ["vulnerability-alerts", "automated-security-fixes"])
+        self.assertEqual(self.findings(fake.state), [])
+
+    def test_dependabot_refuses_to_run_without_alerts(self):
+        item = state()
+        item["vulnerability_alerts"] = False
+        item["repo"]["security_and_analysis"]["dependabot_security_updates"][
+            "status"
+        ] = "disabled"
+        fake = FakeGitHub(item)
+        # Simulate a policy that explicitly waives alerts (not a normal baseline).
+        requested = [
+            f for f in self.findings(item)
+            if f["code"] == "security.dependabot_updates"
+        ]
+        applied, failures = policy.apply_supported(fake, item, self.cfg, requested)
+        self.assertFalse(applied)
+        self.assertTrue(any("alerts are disabled" in f for f in failures))
+        self.assertFalse(fake.writes)
 
     def test_branch_only_added_with_real_successful_checks(self):
         item = state(protected=False)

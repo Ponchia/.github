@@ -83,7 +83,7 @@ python3 scripts/repository_policy.py --all --json
 ~~~
 
 An explicit `--apply` allows narrowly scoped verified changes such as
-Dependabot security updates, merged-branch cleanup, sponsorship and
+vulnerability alerts and Dependabot security updates, merged-branch cleanup, sponsorship and
 **first-time** branch protection with previously successful required CI checks.
 Existing branch rules and project-specific CI are never overwritten.
 Account-wide mutation additionally requires `--confirm-owner Ponchia`.

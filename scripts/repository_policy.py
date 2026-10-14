@@ -30,10 +30,12 @@ KNOWN_REQUIREMENTS = {
     "dependabotConfig", "ciWorkflow", "requireDescription",
     "recommendAgentInstructions", "recommendTopics", "branchProtection",
     "requirePullRequest", "requireAdmins", "requireChecks",
-    "secretScanning", "pushProtection", "dependabotSecurityUpdates",
+    "secretScanning", "pushProtection", "vulnerabilityAlerts",
+    "dependabotSecurityUpdates",
     "deleteBranchOnMerge", "sponsorButton",
 }
 AUTO_ACTIONS = {
+    "security.vulnerability_alerts",
     "security.dependabot_updates",
     "settings.delete_merged_branches",
     "branch.initial_protection",
@@ -219,6 +221,11 @@ def snapshot(client: GitHub, full: str) -> dict[str, Any]:
             f"Cannot inspect effective branch rules for {full}; "
             "refusing to assume no protection"
         )
+    # GitHub exposes vulnerability alerts through a dedicated REST endpoint:
+    # 204 = enabled, 404 = disabled. It is a prerequisite for Dependabot fixes.
+    vulnerability_alerts = client.get(
+        f"repos/{full}/vulnerability-alerts", not_found_ok=True
+    ) is not None
     funding = client.funding("Ponchia", name)
     if funding["nameWithOwner"].casefold() != full.casefold():
         raise PolicyError("Funding lookup returned a different repository")
@@ -229,6 +236,7 @@ def snapshot(client: GitHub, full: str) -> dict[str, Any]:
         "protection": protection,
         "rules": rules,
         "funding": funding,
+        "vulnerability_alerts": vulnerability_alerts,
         "skipped": False,
     }
 
@@ -292,6 +300,12 @@ def resolve_findings(
     if req["pushProtection"]:
         value = (features.get("secret_scanning_push_protection") or {}).get("status")
         require("security.push_protection", value, "enabled")
+    if req["vulnerabilityAlerts"]:
+        require(
+            "security.vulnerability_alerts", state["vulnerability_alerts"], True,
+            action="security.vulnerability_alerts"
+            if state["vulnerability_alerts"] is False else None,
+        )
     if req["dependabotSecurityUpdates"]:
         value = (features.get("dependabot_security_updates") or {}).get("status")
         require("security.dependabot_updates", value, "enabled",
@@ -395,7 +409,21 @@ def apply_supported(
         except (PolicyError, ApiError) as exc:
             failures.append(f"{code}: {exc}")
 
+    def enable_vulnerability_alerts() -> None:
+        client.write("PUT", f"repos/{full}/vulnerability-alerts")
+        if client.get(
+            f"repos/{full}/vulnerability-alerts", not_found_ok=True
+        ) is None:
+            raise PolicyError("Vulnerability alerts were not confirmed as enabled")
+
     def enable_dependabot() -> None:
+        if client.get(
+            f"repos/{full}/vulnerability-alerts", not_found_ok=True
+        ) is None:
+            raise PolicyError(
+                "Cannot enable Dependabot security fixes while "
+                "vulnerability alerts are disabled"
+            )
         client.write("PUT", f"repos/{full}/automated-security-fixes")
         check = client.get(f"repos/{full}")
         if (check.get("security_and_analysis") or {}).get(
@@ -493,6 +521,7 @@ def apply_supported(
         ):
             raise PolicyError("Branch protection verification was incomplete")
 
+    attempt("security.vulnerability_alerts", enable_vulnerability_alerts)
     attempt("security.dependabot_updates", enable_dependabot)
     attempt("settings.delete_merged_branches", delete_merged_branches)
     attempt("sponsor.button", sponsor)

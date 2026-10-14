@@ -40,10 +40,11 @@ python3 scripts/repository_policy.py --all --apply --confirm-owner Ponchia
 
 The mutation allowlist is intentionally small:
 
-1. Enable Dependabot security updates, when currently disabled.
-2. Enable automatic deletion of merged pull-request branches.
-3. Enable the Sponsor button after checking Ponchia's exact Ko-fi link.
-4. **Only in an otherwise unprotected branch with no effective ruleset**:
+1. Enable GitHub vulnerability alerts, the prerequisite for Dependabot fixes.
+2. Enable Dependabot security updates, when currently disabled.
+3. Enable automatic deletion of merged pull-request branches.
+4. Enable the Sponsor button after checking Ponchia's exact Ko-fi link.
+5. **Only in an otherwise unprotected branch with no effective ruleset**:
    establish PR-only changes, enforce admins, require the explicitly listed
    checks, resolve PR conversations, prohibit force pushes and branch deletions.
 
