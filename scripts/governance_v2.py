@@ -377,6 +377,11 @@ def noteworthy(report: dict[str, Any]) -> list[dict[str, Any]]:
         for finding in row.get("findings", []):
             if finding.get("severity") != "error":
                 continue
+            # An unregistered repo already has an unmanaged status. The
+            # policy engine also emits repository.unmanaged as a finding;
+            # report it once rather than notifying twice for one event.
+            if row["status"] == "unmanaged" and finding["code"] == "repository.unmanaged":
+                continue
             items.append({
                 "repository": full,
                 "code": finding["code"],
