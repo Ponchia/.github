@@ -15,6 +15,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Python syntax
         run: python3 -m compileall -q scripts tests
+      - name: Validate declarative repository policy
+        run: python3 scripts/repository_policy.py --validate-policy
       - name: Run offline unit tests
         run: python3 -m unittest discover -s tests -v
       - name: Validate default funding

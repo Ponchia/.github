@@ -49,10 +49,27 @@ Verify the public repository page shows the Sponsor button, and verify the
 funding destination opens the correct Ko-fi account. A successful GraphQL
 status is useful evidence but not a payment-flow test.
 
-## 4. Periodic account audit
+## 4. Register repository policy
+
+For a newly published original project, add its `project` profile and
+real successful CI check names to
+[the policy](../policy/repositories.json), through a PR to `Ponchia/.github`.
+Unregistered projects are reported but never automatically changed.
+
+~~~sh
+python3 scripts/repository_policy.py --repo Ponchia/new-project
+python3 scripts/repository_policy.py --repo Ponchia/new-project --apply
+~~~
+
+See [the governance guide](REPOSITORY_POLICY.md). The policy tool
+does not edit existing CI definitions or branch-protection rules.
+
+## 5. Periodic account audit
+
 
 ```sh
 python3 scripts/sponsorships.py --all --json
+python3 scripts/repository_policy.py --all --json
 ```
 
 Use the JSON output as input to a local agent or report if wanted. Do not
@@ -71,8 +88,9 @@ authenticated maintainer machine.
   files may still be available to GitHub there.
 - **Archived repositories:** left unchanged.
 - **Overrides:** local community files win over central defaults.
-- **Automation:** this script changes sponsorship settings only. It does not
-  introduce or weaken CI, protections, scans, permissions, licenses or releases.
+- **Automation:** the sponsorship script only enables Sponsor buttons; the
+  separate policy CLI has its own opt-in administration operations. Neither
+  rewrites project CI, release processes, licenses or sources.
 - **Security:** do not put tokens into scripts or logs. Use the already
   authenticated GitHub CLI rather than creating a broad long-lived PAT.
 
