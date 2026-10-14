@@ -70,6 +70,27 @@ reports `missing_funding` rather than enabling an incomplete Sponsor button.
 Re-run the audit later; do not add unnecessary duplicate files just to silence
 the check.
 
+## Repository governance and drift checks
+
+The shared repository also maintains a [declarative GitHub policy](policy/repositories.json)
+and a [read-only drift auditor](scripts/repository_policy.py). It distinguishes
+maintained OSS, the personal profile and these defaults, and identifies
+unregistered new projects without modifying them.
+
+~~~sh
+python3 scripts/repository_policy.py --all
+python3 scripts/repository_policy.py --all --json
+~~~
+
+An explicit `--apply` allows narrowly scoped verified changes such as
+Dependabot security updates, merged-branch cleanup, sponsorship and
+**first-time** branch protection with previously successful required CI checks.
+Existing branch rules and project-specific CI are never overwritten.
+Account-wide mutation additionally requires `--confirm-owner Ponchia`.
+
+Read the [governance guide](docs/REPOSITORY_POLICY.md) before any write.
+The CLI skips forks, private and archived repositories.
+
 ## What stays project-specific
 
 GitHub does **not** inherit CI workflows, Dependabot configuration,

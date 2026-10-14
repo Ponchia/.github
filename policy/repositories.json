@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "owner": "Ponchia",
+  "profiles": {
+    "project": {
+      "readme": true,
+      "license": true,
+      "securityPolicy": true,
+      "contributingGuide": true,
+      "dependabotConfig": true,
+      "ciWorkflow": true,
+      "requireDescription": true,
+      "recommendAgentInstructions": true,
+      "recommendTopics": true,
+      "branchProtection": true,
+      "requirePullRequest": true,
+      "requireAdmins": true,
+      "requireChecks": true,
+      "secretScanning": true,
+      "pushProtection": true,
+      "dependabotSecurityUpdates": true,
+      "deleteBranchOnMerge": true,
+      "sponsorButton": true
+    },
+    "shared-defaults": {
+      "readme": true,
+      "license": true,
+      "securityPolicy": false,
+      "contributingGuide": false,
+      "dependabotConfig": true,
+      "ciWorkflow": true,
+      "requireDescription": true,
+      "recommendAgentInstructions": true,
+      "recommendTopics": false,
+      "branchProtection": true,
+      "requirePullRequest": true,
+      "requireAdmins": true,
+      "requireChecks": true,
+      "secretScanning": true,
+      "pushProtection": true,
+      "dependabotSecurityUpdates": true,
+      "deleteBranchOnMerge": true,
+      "sponsorButton": false
+    },
+    "profile": {
+      "readme": true,
+      "license": false,
+      "securityPolicy": false,
+      "contributingGuide": false,
+      "dependabotConfig": false,
+      "ciWorkflow": false,
+      "requireDescription": true,
+      "recommendAgentInstructions": false,
+      "recommendTopics": false,
+      "branchProtection": false,
+      "requirePullRequest": false,
+      "requireAdmins": false,
+      "requireChecks": false,
+      "secretScanning": true,
+      "pushProtection": true,
+      "dependabotSecurityUpdates": false,
+      "deleteBranchOnMerge": false,
+      "sponsorButton": true
+    }
+  },
+  "repositories": {
+    ".github": {
+      "profile": "shared-defaults",
+      "requiredChecks": ["python"]
+    },
+    "Ponchia": {
+      "profile": "profile"
+    },
+    "bronto-annotations": {
+      "profile": "project",
+      "requiredChecks": ["Node 20", "Node 22"]
+    },
+    "bronto-layout": {
+      "profile": "project",
+      "requiredChecks": [
+        "Node 22 + Chromium (shard 1/2)",
+        "Node 22 + Chromium (shard 2/2)",
+        "Node 24 + Chromium (shard 1/2)",
+        "Node 24 + Chromium (shard 2/2)"
+      ]
+    },
+    "bronto-ui": {
+      "profile": "project",
+      "requiredChecks": ["ci-gate"]
+    },
+    "sense6": {
+      "profile": "project",
+      "requiredChecks": [
+        "verify / browser",
+        "verify / lighthouse",
+        "verify / visual",
+        "verify / release"
+      ]
+    },
+    "vaultwarden-eso-provider": {
+      "profile": "project",
+      "requiredChecks": [
+        "Rust",
+        "Helm",
+        "Security",
+        "Docker",
+        "CodeQL Rust",
+        "CodeQL Actions",
+        "Minimum Rust",
+        "Vaultwarden and ESO",
+        "License notices",
+        "Packaged provider (amd64)",
+        "Packaged provider (arm64)"
+      ]
+    },
+    "web-tooling": {
+      "profile": "project",
+      "requiredChecks": [
+        "Validate GitHub Actions syntax",
+        "Reusable workflow smoke test / Node 22 / static-site checks"
+      ]
+    }
+  }
+}

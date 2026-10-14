@@ -7,10 +7,12 @@ including private repositories and forks.
 - Do not put secrets, access tokens or private deployment details here.
 - Keep default files concise. Project-specific instructions should remain in
   their own repositories and override these defaults.
-- Treat the sponsorship script as a maintainer-controlled tool. Read-only by
-  default; never remove the --apply guard or fork/private/archived exclusions.
+- Treat sponsorship and repository-policy scripts as maintainer-controlled.
+  Keep them read-only by default and preserve --apply, owner checks, verified
+  CI requirements, existing branch protections and fork exclusions.
 - Do not attempt to create or alter other repositories automatically in CI.
 - Python standard library + authenticated gh CLI; no additional runtime deps.
+- Run: python3 scripts/repository_policy.py --validate-policy
 - Run: python3 -m unittest discover -s tests -v
 - Run: python3 -m compileall -q scripts tests
 - Run: actionlint .github/workflows/*.yml (when installed).
