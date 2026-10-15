@@ -170,7 +170,9 @@ class PolicyTests(unittest.TestCase):
 
     def test_schema(self):
         self.assertEqual(self.policy["owner"], "Ponchia")
-        self.assertEqual(len(self.policy["repositories"]), 8)
+        self.assertEqual(len(self.policy["repositories"]), 10)
+        self.assertIn("bronto-pulse", self.policy["repositories"])
+        self.assertIn("bronto-visual-models", self.policy["repositories"])
 
     def test_baseline_compliant(self):
         self.assertEqual(self.findings(state()), [])

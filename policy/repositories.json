@@ -92,10 +92,26 @@
         "Node 24 + Chromium (shard 2/2)"
       ]
     },
+    "bronto-pulse": {
+      "profile": "project",
+      "requiredChecks": [
+        "verify",
+        "CodeQL source scan",
+        "CodeQL"
+      ]
+    },
     "bronto-ui": {
       "profile": "project",
       "requiredChecks": [
         "ci-gate"
+      ]
+    },
+    "bronto-visual-models": {
+      "profile": "project",
+      "requiredChecks": [
+        "Core / Node 22",
+        "Core / Node 24",
+        "Packed UI / Chromium"
       ]
     },
     "sense6": {
