@@ -111,7 +111,9 @@
       "requiredChecks": [
         "Core / Node 22",
         "Core / Node 24",
-        "Packed UI / Chromium"
+        "Packed UI / chromium",
+        "Packed UI / firefox",
+        "Packed UI / webkit"
       ]
     },
     "sense6": {
