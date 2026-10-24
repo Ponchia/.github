@@ -84,8 +84,15 @@ journalctl --user -u ponchia-governance-watch.service -n 50 --no-pager
 
 The timer is scheduled every Monday at about 09:00 Europe/Madrid and
 persists across missed runs on the devbox. The machine must be running
-(or come back online) for scheduled checks to execute. Keep the existing
-GitHub CLI login authorized.
+(or come back online) for scheduled checks to execute. The unit puts the
+devbox's gh router first on PATH when one is installed, so the watch runs
+with the Ponchia connection's fine-grained token rather than a stored
+account-wide login. That token needs read access to Administration, for
+branch protection, vulnerability alerts and security settings. It also needs
+Contents and Metadata read, and Issues write for the drift issue. Approved
+change plans are not run by the watch. They need their own maintainer
+credential: a fine-grained token cannot read check runs at all, and writes
+administration settings only if it was granted Administration write.
 
 Evidence is stored under ~/.local/state/ponchia-governance/ with restricted
 permissions. Watch snapshots are individually SHA-256 identified and
