@@ -81,7 +81,9 @@
       "requiredChecks": [
         "Node 20",
         "Node 22",
-        "Review dependency changes"
+        "Review dependency changes",
+        "JavaScript / TypeScript",
+        "CodeQL"
       ]
     },
     "bronto-layout": {
@@ -111,7 +113,8 @@
     "bronto-ui": {
       "profile": "project",
       "requiredChecks": [
-        "ci-gate"
+        "ci-gate",
+        "CodeQL"
       ]
     },
     "bronto-visual-models": {
@@ -121,7 +124,11 @@
         "Core / Node 24",
         "Packed UI / chromium",
         "Packed UI / firefox",
-        "Packed UI / webkit"
+        "Packed UI / webkit",
+        "Build candidate archive",
+        "Published archive identity",
+        "Review dependency changes",
+        "CodeQL"
       ]
     },
     "sense6": {
