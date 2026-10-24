@@ -80,7 +80,10 @@
       "profile": "project",
       "requiredChecks": [
         "Node 20",
-        "Node 22"
+        "Node 22",
+        "Review dependency changes",
+        "JavaScript / TypeScript",
+        "CodeQL"
       ]
     },
     "bronto-layout": {
@@ -89,7 +92,12 @@
         "Node 22 + Chromium (shard 1/2)",
         "Node 22 + Chromium (shard 2/2)",
         "Node 24 + Chromium (shard 1/2)",
-        "Node 24 + Chromium (shard 2/2)"
+        "Node 24 + Chromium (shard 2/2)",
+        "macos",
+        "CodeQL (javascript-typescript)",
+        "CodeQL (actions)",
+        "CodeQL",
+        "Review dependency changes"
       ]
     },
     "bronto-pulse": {
@@ -97,13 +105,16 @@
       "requiredChecks": [
         "verify",
         "CodeQL source scan",
-        "CodeQL"
+        "CodeQL",
+        "CodeQL workflow scan",
+        "Review dependency changes"
       ]
     },
     "bronto-ui": {
       "profile": "project",
       "requiredChecks": [
-        "ci-gate"
+        "ci-gate",
+        "CodeQL"
       ]
     },
     "bronto-visual-models": {
@@ -113,7 +124,11 @@
         "Core / Node 24",
         "Packed UI / chromium",
         "Packed UI / firefox",
-        "Packed UI / webkit"
+        "Packed UI / webkit",
+        "Build candidate archive",
+        "Published archive identity",
+        "Review dependency changes",
+        "CodeQL"
       ]
     },
     "sense6": {
