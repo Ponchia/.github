@@ -98,8 +98,10 @@ retired; sponsorship onboarding retains its separate narrowly scoped command.
 ## Weekly drift watch on the devbox
 
 The [systemd user timer](ops/systemd/ponchia-governance-watch.timer) runs each
-Monday at about 09:00 Europe/Madrid. It uses the devbox's existing gh
-authentication to audit GitHub configuration read-only, keeps evidence in
+Monday at about 09:00 Europe/Madrid. It uses the devbox's gh, through the
+devbox's gh router when one is installed, to audit GitHub configuration
+read-only. The token it ends up with needs Administration read, plus
+Contents and Metadata read and Issues write. It keeps evidence in
 a private local state directory, and creates or updates a GitHub issue only
 if meaningful findings change. No administrative token is placed in
 public GitHub Actions.
