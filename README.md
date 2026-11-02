@@ -8,6 +8,10 @@ This repository is not a monorepo, a project template, or a shared CI runner.
 Each project owns its release process, tests, license, security policy and
 technical contribution guidelines.
 
+For the independently usable libraries and applications, see the
+[Bronto project directory](docs/BRONTO_ECOSYSTEM.md). This manual guide does not
+change the fallback community files or repository settings.
+
 ## What GitHub automatically provides
 
 | File | Effect when a repository has no local equivalent |
