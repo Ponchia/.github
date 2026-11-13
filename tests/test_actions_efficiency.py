@@ -13,10 +13,19 @@ audit = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(audit)
 
 
-def item(number, event="pull_request", pr=2):
+def item(
+    number, event="pull_request", pr=2, *,
+    source_repo="Ponchia/a", source_branch="work/topic",
+    head_sha="1" * 40,
+):
     return {
         "id": number, "name": "CI", "event": event, "conclusion": "success",
         "pull_requests": [{"number": pr}] if pr is not None else [],
+        "head_repository": (
+            {"full_name": source_repo} if source_repo is not None else None
+        ),
+        "head_branch": source_branch,
+        "head_sha": head_sha,
     }
 
 
@@ -65,6 +74,49 @@ class ActionsTests(unittest.TestCase):
         result = audit.summarize("Ponchia/a", [item(1, pr=None)])
         self.assertEqual(result["unboundPrRuns"], 1)
         self.assertEqual(result["repeatAttempts"], [])
+
+    def test_source_branch_attribution_with_missing_pr_numbers(self):
+        data = [
+            item(1, pr=None, head_sha="a" * 40),
+            item(2, pr=None, head_sha="a" * 40),
+            item(3, pr=None, head_sha="b" * 40),
+        ]
+        report = audit.summarize("Ponchia/a", data)
+        self.assertEqual(report["unboundPrRuns"], 3)
+        self.assertEqual(report["unknownSourceBranchRuns"], 0)
+        self.assertEqual(report["repeatAttempts"], [])
+        self.assertEqual(report["sourceBranchAttempts"], [{
+            "headRepository": "Ponchia/a", "headBranch": "work/topic",
+            "workflow": "CI", "runs": 3,
+        }])
+        self.assertEqual(report["sameHeadCommitAttempts"], [{
+            "headRepository": "Ponchia/a", "headBranch": "work/topic",
+            "workflow": "CI", "headSha": "a" * 40, "runs": 2,
+        }])
+
+    def test_same_name_from_two_forks_is_not_collated(self):
+        report = audit.summarize("Ponchia/a", [
+            item(1, pr=None, source_repo="fork/a"),
+            item(2, pr=None, source_repo="fork/b"),
+        ])
+        self.assertEqual(report["sourceBranchAttempts"], [])
+        self.assertEqual(report["sameHeadCommitAttempts"], [])
+
+    def test_missing_head_repository_is_explicitly_unknown(self):
+        report = audit.summarize("Ponchia/a", [
+            item(1, pr=None, source_repo=None),
+            item(2, pr=None, source_branch=None),
+        ])
+        self.assertEqual(report["unknownSourceBranchRuns"], 2)
+        self.assertEqual(report["sourceBranchAttempts"], [])
+
+    def test_pushes_do_not_count_as_pr_branch_attempts(self):
+        report = audit.summarize("Ponchia/a", [
+            item(1, event="push"),
+            item(2, event="push"),
+        ])
+        self.assertEqual(report["sourceBranchAttempts"], [])
+        self.assertEqual(report["unboundPrRuns"], 0)
 
     def test_date_strict(self):
         self.assertEqual(audit.iso_day("2026-11-13").isoformat(), "2026-11-13")

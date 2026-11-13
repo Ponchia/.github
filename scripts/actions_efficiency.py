@@ -88,20 +88,58 @@ def summarize(repo: str, runs: list[dict]) -> dict:
     events = Counter(str(run.get("event") or "unknown") for run in runs)
     outcomes = Counter(str(run.get("conclusion") or "incomplete") for run in runs)
     by_pr = Counter()
+    by_source_branch = Counter()
+    by_head_commit = Counter()
     unbound_pr = 0
+    unknown_source_branch = 0
     for run in runs:
         if run.get("event") != "pull_request":
             continue
+        workflow = str(run.get("name") or "unnamed")
         prs = run.get("pull_requests")
-        if not isinstance(prs, list) or not prs:
+        known_pr = False
+        if isinstance(prs, list):
+            for pr in prs:
+                if isinstance(pr, dict) and type(pr.get("number")) is int:
+                    by_pr[(pr["number"], workflow)] += 1
+                    known_pr = True
+        if not known_pr:
+            # GitHub's Actions list endpoint commonly returns pull_requests=[]
+            # even for pull_request runs. Preserve this unknown explicitly.
             unbound_pr += 1
+
+        source = run.get("head_repository")
+        branch = run.get("head_branch")
+        if not isinstance(source, dict) or not isinstance(branch, str) or not branch:
+            unknown_source_branch += 1
             continue
-        for pr in prs:
-            if isinstance(pr, dict) and type(pr.get("number")) is int:
-                by_pr[(pr["number"], run.get("name") or "unnamed")] += 1
+        source_name = source.get("full_name")
+        if not isinstance(source_name, str) or not source_name:
+            unknown_source_branch += 1
+            continue
+        by_source_branch[(source_name, branch, workflow)] += 1
+        head_sha = run.get("head_sha")
+        if isinstance(head_sha, str) and len(head_sha) == 40:
+            by_head_commit[(source_name, branch, workflow, head_sha)] += 1
+
     repeated = [
         {"pr": number, "workflow": name, "runs": value}
         for (number, name), value in by_pr.items() if value > 1
+    ]
+    # These are *branch* identities, not PR numbers. A branch can span several
+    # revisions or be reused across PRs; no saving is claimed from the count.
+    branch_attempts = [
+        {"headRepository": owner, "headBranch": branch, "workflow": workflow, "runs": value}
+        for (owner, branch, workflow), value in by_source_branch.items()
+        if value > 1
+    ]
+    same_commit = [
+        {
+            "headRepository": owner, "headBranch": branch,
+            "workflow": workflow, "headSha": sha, "runs": value,
+        }
+        for (owner, branch, workflow, sha), value in by_head_commit.items()
+        if value > 1
     ]
     return {
         "repository": repo, "runs": len(runs),
@@ -112,6 +150,20 @@ def summarize(repo: str, runs: list[dict]) -> dict:
             repeated, key=lambda item: (-item["runs"], item["pr"], item["workflow"])
         )[:20],
         "unboundPrRuns": unbound_pr,
+        "unknownSourceBranchRuns": unknown_source_branch,
+        "sourceBranchAttempts": sorted(
+            branch_attempts,
+            key=lambda row: (
+                -row["runs"], row["headRepository"], row["headBranch"], row["workflow"]
+            ),
+        )[:20],
+        "sameHeadCommitAttempts": sorted(
+            same_commit,
+            key=lambda row: (
+                -row["runs"], row["headRepository"], row["headBranch"],
+                row["workflow"], row["headSha"],
+            ),
+        )[:20],
     }
 
 
