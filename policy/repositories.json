@@ -83,7 +83,8 @@
         "Node 22",
         "Review dependency changes",
         "JavaScript / TypeScript",
-        "CodeQL"
+        "CodeQL",
+        "Audit actual publisher bundle"
       ]
     },
     "bronto-layout": {
