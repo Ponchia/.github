@@ -22,7 +22,7 @@ BASE_FILES = {
 
 def state(
     name="bronto-layout", *, protected=True, pr=True,
-    sponsor=True, funding=True,
+    sponsor=True, funding=True, approvals=1,
 ):
     checks = policy.read_policy()["repositories"][name]["requiredChecks"]
     branch = {
@@ -32,7 +32,7 @@ def state(
         },
         "enforce_admins": {"enabled": True},
         "required_pull_request_reviews": (
-            {"required_approving_review_count": 0} if pr else None
+            {"required_approving_review_count": approvals} if pr else None
         ),
         "allow_force_pushes": {"enabled": False},
         "allow_deletions": {"enabled": False},
@@ -177,6 +177,47 @@ class PolicyTests(unittest.TestCase):
     def test_baseline_compliant(self):
         self.assertEqual(self.findings(state()), [])
 
+    def test_zero_approval_gate_is_advisory_and_never_auto_changed(self):
+        item = state(approvals=0)
+        findings = self.findings(item)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["code"], "branch.approving_review")
+        self.assertEqual(findings[0]["severity"], "advisory")
+        self.assertEqual(findings[0]["actual"], 0)
+        self.assertIsNone(findings[0]["action"])
+        client = FakeGitHub(item)
+        self.assertEqual(policy.apply_supported(client, item, self.cfg, findings), ([], []))
+        self.assertEqual(client.writes, [])
+
+    def test_effective_ruleset_approval_supplements_classic_protection(self):
+        item = state(approvals=0)
+        item["rules"] = [{"type": "pull_request", "parameters": {
+            "required_approving_review_count": 2,
+        }}]
+        self.assertEqual(policy.approval_requirement(item["protection"], item["rules"]), 2)
+        self.assertEqual(self.findings(item), [])
+
+    def test_approval_requirement_keeps_missing_and_invalid_values_unknown(self):
+        for value in (None, "1", False, -1):
+            with self.subTest(value=value):
+                item = state(approvals=value)
+                findings = self.findings(item)
+                self.assertEqual(findings[0]["code"], "branch.approving_review")
+                self.assertIsNone(findings[0]["actual"])
+                self.assertIn("unknown is not zero", findings[0]["detail"])
+        self.assertIsNone(policy.approval_requirement(None, []))
+        self.assertIsNone(policy.approval_requirement(None, [{"type": "pull_request"}]))
+
+    def test_ruleset_only_and_combined_approval_bounds(self):
+        rule = {"type": "pull_request", "parameters": {"required_approving_review_count": 1}}
+        self.assertEqual(policy.approval_requirement(None, [rule]), 1)
+        self.assertIsNone(policy.approval_requirement(
+            state(approvals=0)["protection"], [{"type": "pull_request"}],
+        ))
+        self.assertEqual(policy.approval_requirement(
+            state(approvals=1)["protection"], [{"type": "pull_request"}],
+        ), 1)
+
     def test_missing_branch_protection_action(self):
         issues = self.findings(state(protected=False))
         self.assertEqual([(f["code"], f["action"]) for f in issues],
@@ -292,7 +333,11 @@ class PolicyTests(unittest.TestCase):
         applied, failures = policy.apply_supported(fake, item, self.cfg, self.findings(item))
         self.assertEqual(applied, ["branch.initial_protection"])
         self.assertFalse(failures)
-        self.assertEqual(self.findings(fake.state), [])
+        # Bootstrap preserves the solo-maintainer policy without hiding its
+        # approval limitation or inventing an unavailable second reviewer.
+        findings = self.findings(fake.state)
+        self.assertEqual([(f["code"], f["severity"]) for f in findings],
+                         [("branch.approving_review", "advisory")])
         payload = fake.writes[0][2]
         self.assertEqual(payload["required_pull_request_reviews"]["required_approving_review_count"], 0)
         self.assertTrue(payload["enforce_admins"])

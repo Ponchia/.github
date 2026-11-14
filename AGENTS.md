@@ -24,3 +24,10 @@ including private repositories and forks.
 - Keep the plan SHA, bounded expiry, source hashes, fresh state preconditions
   and one-use receipt boundary intact.
 - Test notification deduplication and failure-retry behavior offline.
+
+## Maintainer instruction check
+
+On the maintainer workspace, run `repo-instruction-audit --repo .` after
+changing agent instructions or documentation routing. This local helper is not
+a prerequisite for outside contributors; the portable checks above remain
+available from a normal clone.

@@ -251,6 +251,32 @@ def finding(code: str, actual: Any, expected: Any, *,
     }
 
 
+
+def approval_requirement(branch: dict[str, Any] | None, rules: list[dict[str, Any]]) -> int | None:
+    """Observed approval-count lower bound, not proof of independent human review.
+
+    Effective rules compose with classic protection. Unknown values must not
+    become zero, while a known positive requirement establishes a lower bound.
+    This read-only assessment never alters a protection or creates an approver.
+    """
+    counts = []
+    reviews = (branch or {}).get("required_pull_request_reviews")
+    if reviews is not None:
+        counts.append(reviews.get("required_approving_review_count")
+                      if isinstance(reviews, dict) else None)
+    for rule in rules:
+        if rule.get("type") == "pull_request":
+            parameters = rule.get("parameters")
+            counts.append(parameters.get("required_approving_review_count")
+                          if isinstance(parameters, dict) else None)
+    known = [count for count in counts if type(count) is int and count >= 0]
+    if known and max(known) > 0:
+        return max(known)
+    if not counts or len(known) != len(counts):
+        return None
+    return 0
+
+
 def resolve_findings(
     state: dict[str, Any],
     cfg: dict[str, Any],
@@ -330,6 +356,19 @@ def resolve_findings(
                 via_branch = branch is not None and branch.get("required_pull_request_reviews") is not None
                 require("branch.pull_request", via_branch or "pull_request" in branch_rules,
                         detail="Existing branch protection is never replaced automatically.")
+                if via_branch or "pull_request" in branch_rules:
+                    approvals = approval_requirement(branch, rules)
+                    if approvals is None or approvals < 1:
+                        observed.append(finding(
+                            "branch.approving_review", approvals, "at least one",
+                            severity="advisory",
+                            detail=(
+                                "Approval requirement could not be established; unknown is not zero."
+                                if approvals is None else
+                                "A PR is required, but no approving review is enforced. "
+                                "A solo-maintainer policy does not establish independent review."
+                            ) + " Read-only advice; existing protection is never changed automatically."
+                        ))
             if req["requireAdmins"]:
                 require(
                     "branch.enforce_admins",

@@ -18,6 +18,8 @@ change the fallback community files or repository settings.
 | --- | --- |
 | [`.github/FUNDING.yml`](.github/FUNDING.yml) | Fallback Ko-fi destination: [ponchia](https://ko-fi.com/ponchia) |
 | [`SUPPORT.md`](SUPPORT.md) | Guidance for user questions and private security reporting |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Generic contribution guidance until a project provides its own |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Respectful collaboration and conduct reporting expectations |
 | [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | Short PR description and validation prompts |
 
 GitHub prefers a repository's own files over these defaults. The files are
