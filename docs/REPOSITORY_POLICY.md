@@ -31,6 +31,36 @@ The tool does **not** modify anything by default.
 It returns a nonzero exit code for a policy violation, unmanaged repository
 or API error. Advisories and explicitly waived findings do not fail.
 
+## Approval gates and security findings
+
+Requiring a pull request is different from requiring an approving review.
+The read-only audit reports `branch.approving_review` as an advisory when a
+protected branch permits merging with zero approvals. It considers both classic
+protection and effective pull-request rules. Missing or malformed evidence stays
+unknown; it is not converted to a zero count. A positive count describes a
+configuration requirement, not the quality or independence of any actual review.
+
+The current solo-maintainer workflow intentionally permits zero approvals while
+requiring its declared CI checks. Keep that limitation visible. Do not invent a
+second reviewer, approve through a different automated identity, or remove
+protection to improve a badge. This advisory has no automatic mutation and does
+not make the auditor fail or trigger the drift watch by itself. Requiring a real
+second approver needs a deliberate maintainer decision and an available reviewer.
+
+OpenSSF Scorecard results describe repository practices. A Branch-Protection or
+Code-Review finding is not proof of an exploitable source-code vulnerability,
+and existing required checks do not make the review limitation disappear.
+Retain unresolved findings with their rationale rather than dismissing them to
+make the dashboard green. A Best Practices badge also requires honest completion
+of its criteria; passing CI alone is not certification.
+
+Dependency alerts, source-code analysis, secret scanning and signed published
+artifacts answer different questions. Record the exact repository, revision,
+analysis tool and time when reporting their results. "No open alerts" is a
+bounded observation, not an independent security audit or proof that a release
+is safe. Source checks and the bytes actually installed must be verified
+separately.
+
 ## Reviewed plan/apply workflow
 
 Repository-setting changes now require a reviewed plan. Unplanned direct
@@ -153,3 +183,19 @@ and during periodic maintenance. The JSON report can feed an agent's review.
 Keep monitoring separate from privileged mutations.
 
 See [the publishing guide](PUBLISHING.md).
+
+## Recover a stopped audit safely
+
+An active timer does not establish that its last service run succeeded. Check
+`systemctl --user status ponchia-governance-watch.service` and its journal as
+well as the timer. A failed fast-forward update stops before the audit starts;
+that is an unavailable audit, not a clean result.
+
+Keep the `--ff-only` guard. When the dedicated deployment checkout has diverged,
+inspect its local commits and working tree and preserve the complete checkout
+before replacing it. Do not hard-reset it, force-push history, or silently merge
+local changes into the scheduled auditor. Reinstall a clean, reviewed `main`
+from `Ponchia/.github` using the installer, then start the existing service once.
+Verify its process result and newly dated private audit evidence. Preserve the
+old checkout until its unique changes have been accounted for. This recovery
+changes neither GitHub protections nor the weekly schedule.
