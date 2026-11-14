@@ -183,3 +183,19 @@ and during periodic maintenance. The JSON report can feed an agent's review.
 Keep monitoring separate from privileged mutations.
 
 See [the publishing guide](PUBLISHING.md).
+
+## Recover a stopped audit safely
+
+An active timer does not establish that its last service run succeeded. Check
+`systemctl --user status ponchia-governance-watch.service` and its journal as
+well as the timer. A failed fast-forward update stops before the audit starts;
+that is an unavailable audit, not a clean result.
+
+Keep the `--ff-only` guard. When the dedicated deployment checkout has diverged,
+inspect its local commits and working tree and preserve the complete checkout
+before replacing it. Do not hard-reset it, force-push history, or silently merge
+local changes into the scheduled auditor. Reinstall a clean, reviewed `main`
+from `Ponchia/.github` using the installer, then start the existing service once.
+Verify its process result and newly dated private audit evidence. Preserve the
+old checkout until its unique changes have been accounted for. This recovery
+changes neither GitHub protections nor the weekly schedule.
